@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-html
+data:
+  index.html: |-
+    <!doctype html>
+    <html>
+      <head><meta charset="utf-8"><title>{{ .Release.Name }}</title></head>
+      <body>
+        <h1>Olá — {{ .Release.Name }}</h1>
+        <p>Servido pelo chart myapp-zero</p>
+      </body>
+    </html>
+

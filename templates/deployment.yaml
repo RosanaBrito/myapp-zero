@@ -1,0 +1,74 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-deployment
+  labels:
+    app: {{ .Release.Name }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}
+    spec:
+      containers:
+{{- range .Values.containers }}
+        - name: {{ .name }}
+          image: "{{ .image.repository }}:{{ .image.tag }}"
+          {{- if .ports }}
+          ports:
+{{- range .ports }}
+            - containerPort: {{ .containerPort }}
+{{- end }}
+          {{- end }}
+
+          {{- if .env }}
+          env:
+{{- range .env }}
+            - name: {{ .name }}
+              value: {{ .value | quote }}
+{{- end }}
+          {{- end }}
+
+          {{- /* volumeMounts: combina mounts do values.yaml com o mount do index.html via ConfigMap para nginx */}}
+          {{- $vm := .volumeMounts }}
+          {{- if or $vm (and $.Values.enableHtmlConfig (eq .name "nginx")) }}
+          volumeMounts:
+            {{- if $vm }}
+{{- range $vm }}
+            - name: {{ .name }}
+              mountPath: {{ .mountPath }}
+{{- end }}
+            {{- end }}
+            {{- if and $.Values.enableHtmlConfig (eq .name "nginx") }}
+            - name: html-config
+              mountPath: /usr/share/nginx/html/index.html
+              subPath: index.html
+            {{- end }}
+          {{- end }}
+
+          {{- if .command }}
+          command: [{{- range $i, $c := .command }}{{ if $i }}, {{ end }}"{{ $c }}"{{- end }}]
+          {{- end }}
+{{- end }}
+
+      {{/* Volumes: inclui emptyDir volumes do values.yaml e adiciona html-config se habilitado */}}
+{{- $vols := .Values.volumes | default list }}
+{{- $enableHtml := .Values.enableHtmlConfig }}
+{{- if or (gt (len $vols) 0) $enableHtml }}
+      volumes:
+{{- range $vols }}
+{{- if .enabled }}
+        - name: {{ .name }}
+          emptyDir: {}
+{{- end }}
+{{- end }}
+{{- if $enableHtml }}
+        - name: html-config
+          configMap:
+            name: {{ .Release.Name }}-html
+{{- end }}
+{{- end }}
