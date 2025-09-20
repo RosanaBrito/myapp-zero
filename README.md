@@ -128,6 +128,7 @@ myapp-zero/
 │   ├── deployment.yaml
 │   └── service.yaml
 ├── .helmignore        # Arquivos a serem ignorados pelo Helm
+├── .gitignore         # Arquivos a serem ignorados pelo Git
 ├── Chart.yaml         # Metadados do chart
 ├── values.yaml        # Valores padrão para customização
 └── README.md          # Este arquivo
