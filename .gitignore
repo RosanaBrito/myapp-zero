@@ -1,0 +1,5 @@
+# Arquivos de log
+*.log
+
+# Arquivos temporários do Helm
+*.tgz
